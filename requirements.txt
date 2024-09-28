@@ -1,0 +1,9 @@
+Flask
+opencv-python
+numpy
+fer
+openai-whisper
+pyaudio
+langchain
+langchain-ollama
+tensorflow 

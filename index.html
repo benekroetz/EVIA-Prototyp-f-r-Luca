@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EVIA Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <h1>EVIA Emotion Dashboard</h1>
+    <button onclick="startCamera()">Start Camera</button>
+    <video id="video" width="320" height="240" autoplay></video>
+    <button onclick="captureImage()">Capture Image</button>
+    <p>Emotion: <span id="emotion"></span></p>
+    <p>Transcription: <span id="transcription"></span></p>
+    <p>LLM Response: <span id="llm_response"></span></p>
+
+    <script>
+        let video = document.getElementById('video');
+
+        function startCamera() {
+            navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+                .then(stream => {
+                    video.srcObject = stream;
+                })
+                .catch(err => {
+                    console.error("Error accessing media devices.", err);
+                });
+        }
+
+        function captureImage() {
+            let canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            let context = canvas.getContext('2d');
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            // Convert the canvas to a Blob (image data)
+            canvas.toBlob(function(blob) {
+                let formData = new FormData();
+                formData.append('image', blob);
+
+                fetch('/detect', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('emotion').textContent = data.emotion;
+                    document.getElementById('transcription').textContent = data.transcription;
+                    document.getElementById('llm_response').textContent = data.llm_response;
+                })
+                .catch(error => console.error('Error:', error));
+            });
+        }
+    </script>
+</body>
+</html>
